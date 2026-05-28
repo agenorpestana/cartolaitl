@@ -175,6 +175,7 @@ export default function MatchesSection({
 
   const isAvailableOrLive = React.useCallback((jogo: Jogo): boolean => {
     if (jogo.status === 'AO_VIVO') return true;
+    if (["1H", "HT", "2H", "ET", "P", "BT", "LIVE", "SUSP", "INT"].includes(jogo.status_detalhado || '')) return true;
     if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
       const kickoff = new Date(jogo.data_jogo).getTime();
       const now = new Date(dataServidor || new Date().toISOString()).getTime();
@@ -186,6 +187,7 @@ export default function MatchesSection({
 
   const isConcludedOrExpired = React.useCallback((jogo: Jogo): boolean => {
     if (jogo.status === 'ENCERRADO') return true;
+    if (["FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO"].includes(jogo.status_detalhado || '')) return true;
     if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
       const kickoff = new Date(jogo.data_jogo).getTime();
       const now = new Date(dataServidor || new Date().toISOString()).getTime();
@@ -259,6 +261,15 @@ export default function MatchesSection({
     return `${hours}h ${mins}m restantes`;
   };
 
+  const isGameActuallyLive = React.useCallback((jogo: Jogo): boolean => {
+    if (jogo.status === 'AO_VIVO') return true;
+    if (["1H", "HT", "2H", "ET", "P", "BT", "LIVE", "SUSP", "INT"].includes(jogo.status_detalhado || '')) return true;
+    if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
+      return !isConcludedOrExpired(jogo);
+    }
+    return false;
+  }, [isPastGame, isConcludedOrExpired]);
+
   // Filtered games list calculation
   const filteredGames = React.useMemo(() => {
     return championshipJogos.filter(jogo => {
@@ -268,7 +279,7 @@ export default function MatchesSection({
       if (filterStatus === 'ABERTO') {
         matchesStatus = jogo.status === 'PENDENTE' && !isMatchLocked(jogo);
       } else if (filterStatus === 'AO_VIVO') {
-        matchesStatus = isAvailableOrLive(jogo) && isPastGame(jogo);
+        matchesStatus = isGameActuallyLive(jogo);
       } else if (filterStatus === 'ENCERRADO') {
         matchesStatus = isConcludedOrExpired(jogo);
       } else if (filterStatus === 'TODOS') {
@@ -281,15 +292,7 @@ export default function MatchesSection({
 
       return matchesRound && matchesStatus;
     });
-  }, [championshipJogos, activeRodada, filterStatus, dataServidor, currentRound, isConcludedOrExpired, isAvailableOrLive, isPastGame]);
-
-  const isGameActuallyLive = React.useCallback((jogo: Jogo): boolean => {
-    if (jogo.status === 'AO_VIVO') return true;
-    if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
-      return !isConcludedOrExpired(jogo);
-    }
-    return false;
-  }, [isPastGame, isConcludedOrExpired]);
+  }, [championshipJogos, activeRodada, filterStatus, dataServidor, currentRound, isConcludedOrExpired, isGameActuallyLive]);
 
   // Split into live matches, upcoming matches, and finished matches
   const liveGamesList = React.useMemo(() => {
@@ -297,8 +300,12 @@ export default function MatchesSection({
   }, [filteredGames, isGameActuallyLive]);
 
   const upcomingGamesList = React.useMemo(() => {
-    return filteredGames.filter(jogo => jogo.status === 'PENDENTE' && !isPastGame(jogo));
-  }, [filteredGames, isPastGame]);
+    return filteredGames.filter(jogo => 
+      jogo.status === 'PENDENTE' && 
+      !isPastGame(jogo) && 
+      !isGameActuallyLive(jogo)
+    );
+  }, [filteredGames, isPastGame, isGameActuallyLive]);
 
   const concludedGames = React.useMemo(() => {
     return filteredGames.filter(jogo => isConcludedOrExpired(jogo));
@@ -318,7 +325,7 @@ export default function MatchesSection({
     const isSuspended = jogo.status_detalhado === 'SUSP';
     const isPostponed = jogo.status_detalhado === 'PST';
 
-    const isGameLive = jogo.status === 'AO_VIVO' || (jogo.status === 'PENDENTE' && isPastGame(jogo) && !isConcludedOrExpired(jogo));
+    const isGameLive = isGameActuallyLive(jogo);
 
     return (
       <div 

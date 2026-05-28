@@ -1635,10 +1635,16 @@ async function startServer() {
               g.status = 'AO_VIVO';
               if (g.placar_casa === null) g.placar_casa = 0;
               if (g.placar_fora === null) g.placar_fora = 0;
+              
+              if (elapsedMins < 45) g.status_detalhado = "1H";
+              else if (elapsedMins < 60) g.status_detalhado = "HT";
+              else g.status_detalhado = "2H";
+
               updatedCount++;
               console.log(`[Auto-Sync Backtimer Simulation] Jogo iniciado automaticamente: ${g.time_casa} x ${g.time_fora}`);
             } else {
               g.status = 'ENCERRADO';
+              g.status_detalhado = "FT";
               if (g.placar_casa === null) g.placar_casa = Math.floor(Math.random() * 3);
               if (g.placar_fora === null) g.placar_fora = Math.floor(Math.random() * 3);
               updatedCount++;
@@ -1647,6 +1653,16 @@ async function startServer() {
           } 
           // 2. Simulating real-time game updates while AO_VIVO
           else if (g.status === 'AO_VIVO') {
+            const prevDet = g.status_detalhado;
+            if (elapsedMins < 45) g.status_detalhado = "1H";
+            else if (elapsedMins < 60) g.status_detalhado = "HT";
+            else if (elapsedMins < 105) g.status_detalhado = "2H";
+            else g.status_detalhado = "FT";
+
+            if (prevDet !== g.status_detalhado) {
+              updatedCount++;
+            }
+
             if (!isRealMatch) {
               // Increment goals slowly per minute during playtime for mock games only
               const shouldGoalCasa = Math.random() < 0.04; // 4% chance per minute to score
@@ -1665,6 +1681,7 @@ async function startServer() {
             // 3. Conclude game automatically after 105 minutes (90' plus halftime rest / extra time)
             if (elapsedMins >= 105) {
               g.status = 'ENCERRADO';
+              g.status_detalhado = "FT";
               updatedCount++;
               console.log(`[Auto-Sync Backtimer Simulation] Jogo encerrado automaticamente: ${g.time_casa} x ${g.time_fora} (${g.placar_casa}x${g.placar_fora})`);
             }
@@ -3217,10 +3234,12 @@ async function startServer() {
             placar_casa: placarCasa,
             placar_fora: placarFora,
             status: mappedStatus as any,
-            rodada: 1
+            status_detalhado: shortStatus,
+            rodada: parseRoundNumber(item.league?.round || "Group Stage - 1")
           });
           addedCount++;
         } else {
+          existing.api_id = apiId;
           existing.time_casa = timeCasa;
           existing.time_fora = timeFora;
           existing.time_casa_bandeira = timeCasaBandeira;
@@ -3229,6 +3248,8 @@ async function startServer() {
           existing.placar_casa = placarCasa;
           existing.placar_fora = placarFora;
           existing.status = mappedStatus as any;
+          existing.status_detalhado = shortStatus;
+          existing.rodada = parseRoundNumber(item.league?.round || "Group Stage - 1");
           updatedCount++;
         }
       }
@@ -3424,10 +3445,12 @@ async function startServer() {
             placar_casa: placarCasa,
             placar_fora: placarFora,
             status: mappedStatus as any,
+            status_detalhado: shortStatus,
             rodada: item.league?.round ? (parseInt(item.league.round.replace(/\D/g, "")) || 1) : 1
           });
           addedCount++;
         } else {
+          existing.api_id = apiId;
           existing.time_casa = timeCasa;
           existing.time_fora = timeFora;
           existing.time_casa_bandeira = timeCasaBandeira;
@@ -3436,6 +3459,7 @@ async function startServer() {
           existing.placar_casa = placarCasa;
           existing.placar_fora = placarFora;
           existing.status = mappedStatus as any;
+          existing.status_detalhado = shortStatus;
           if (item.league?.round) {
             existing.rodada = parseInt(item.league.round.replace(/\D/g, "")) || 1;
           }
@@ -3509,16 +3533,33 @@ async function startServer() {
           g.status = 'AO_VIVO';
           if (g.placar_casa === null) g.placar_casa = 0;
           if (g.placar_fora === null) g.placar_fora = 0;
+          
+          if (elapsedMins < 45) g.status_detalhado = "1H";
+          else if (elapsedMins < 60) g.status_detalhado = "HT";
+          else g.status_detalhado = "2H";
+
           updatedCount++;
         } else {
           g.status = 'ENCERRADO';
+          g.status_detalhado = "FT";
           if (g.placar_casa === null) g.placar_casa = Math.floor(Math.random() * 3);
           if (g.placar_fora === null) g.placar_fora = Math.floor(Math.random() * 3);
           updatedCount++;
         }
       } else if (g.status === 'AO_VIVO') {
+        const prevDet = g.status_detalhado;
+        if (elapsedMins < 45) g.status_detalhado = "1H";
+        else if (elapsedMins < 60) g.status_detalhado = "HT";
+        else if (elapsedMins < 105) g.status_detalhado = "2H";
+        else g.status_detalhado = "FT";
+
+        if (prevDet !== g.status_detalhado) {
+          updatedCount++;
+        }
+
         if (elapsedMins >= 105) {
           g.status = 'ENCERRADO';
+          g.status_detalhado = "FT";
           updatedCount++;
         } else if (!isRealMatch) {
           // Increment some goals for mock games occasionally while live
