@@ -196,8 +196,8 @@ function isAnyRoundWindowActive(jogos: Jogo[]): boolean {
     const kickoffTimes = roundGames.map(g => new Date(g.data_jogo).getTime());
     const minKickoff = Math.min(...kickoffTimes);
 
-    // Let's assume a football match takes about 115 minutes (90 mins + halftime + added time)
-    const matchDuration = 115 * 60 * 1000;
+    // Let's assume a football match takes about 240 minutes (4 hours to cover delays, extra time, and post-game updates safely)
+    const matchDuration = 240 * 60 * 1000;
     const maxKickoff = Math.max(...kickoffTimes);
     const maxEndTime = maxKickoff + matchDuration;
 

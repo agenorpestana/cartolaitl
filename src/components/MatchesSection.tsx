@@ -180,7 +180,7 @@ export default function MatchesSection({
       const kickoff = new Date(jogo.data_jogo).getTime();
       const now = new Date(dataServidor || new Date().toISOString()).getTime();
       const elapsedMins = (now - kickoff) / (1000 * 60);
-      return elapsedMins < 105;
+      return elapsedMins < 135;
     }
     return jogo.status === 'PENDENTE' && !isPastGame(jogo);
   }, [isPastGame, dataServidor]);
@@ -188,11 +188,19 @@ export default function MatchesSection({
   const isConcludedOrExpired = React.useCallback((jogo: Jogo): boolean => {
     if (jogo.status === 'ENCERRADO') return true;
     if (["FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO"].includes(jogo.status_detalhado || '')) return true;
-    if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
+    
+    if (isPastGame(jogo)) {
       const kickoff = new Date(jogo.data_jogo).getTime();
       const now = new Date(dataServidor || new Date().toISOString()).getTime();
       const elapsedMins = (now - kickoff) / (1000 * 60);
-      return elapsedMins >= 105;
+      
+      // If past 135 minutes (2 hours 15 mins), and is not explicitly formatted live, treat as concluded/expired
+      if (elapsedMins >= 135) {
+        const isExplicitLive = ["1H", "HT", "2H", "ET", "P", "BT", "LIVE", "SUSP", "INT"].includes(jogo.status_detalhado || '');
+        if (!isExplicitLive) {
+          return true;
+        }
+      }
     }
     return false;
   }, [isPastGame, dataServidor]);
@@ -262,7 +270,9 @@ export default function MatchesSection({
   };
 
   const isGameActuallyLive = React.useCallback((jogo: Jogo): boolean => {
-    if (jogo.status === 'AO_VIVO') return true;
+    if (jogo.status === 'AO_VIVO') {
+      return !isConcludedOrExpired(jogo);
+    }
     if (["1H", "HT", "2H", "ET", "P", "BT", "LIVE", "SUSP", "INT"].includes(jogo.status_detalhado || '')) return true;
     if (jogo.status === 'PENDENTE' && isPastGame(jogo)) {
       return !isConcludedOrExpired(jogo);
@@ -283,11 +293,8 @@ export default function MatchesSection({
       } else if (filterStatus === 'ENCERRADO') {
         matchesStatus = isConcludedOrExpired(jogo);
       } else if (filterStatus === 'TODOS') {
-        // If we are looking at the current/active round, hide older/expired games by default
-        // so they do not clutter the betting deck and move entirely to the "Encerrados" filter status.
-        if (activeRodada === currentRound) {
-          matchesStatus = !isConcludedOrExpired(jogo);
-        }
+        // Show everything: live games, upcoming, and finished ones of active round
+        matchesStatus = true;
       }
 
       return matchesRound && matchesStatus;

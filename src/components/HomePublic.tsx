@@ -202,8 +202,22 @@ export default function HomePublic({
   }, [jogos]);
 
   const liveMatches = React.useMemo(() => {
-    return (jogos || []).filter(j => j.status === 'AO_VIVO');
-  }, [jogos]);
+    const dataServidor = metrics?.data_servidor || new Date().toISOString();
+    return (jogos || []).filter(jogo => {
+      if (jogo.status === 'AO_VIVO') return true;
+      if (["1H", "HT", "2H", "ET", "P", "BT", "LIVE", "SUSP", "INT"].includes(jogo.status_detalhado || '')) return true;
+      
+      const nowMs = new Date(dataServidor).getTime();
+      const gameMs = new Date(jogo.data_jogo).getTime();
+      const isPastGame = gameMs <= nowMs;
+      
+      if (jogo.status === 'PENDENTE' && isPastGame) {
+        const elapsedMins = (nowMs - gameMs) / (1000 * 60);
+        return elapsedMins < 135; // Keep live for 2h 15m from kickoff
+      }
+      return false;
+    });
+  }, [jogos, metrics]);
 
   // Find rounds where this user won (was the 1st place)
   const rodadasGanhas = React.useMemo(() => {
