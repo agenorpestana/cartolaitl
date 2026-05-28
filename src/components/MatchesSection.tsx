@@ -359,25 +359,28 @@ export default function MatchesSection({
           </div>
 
           {isGameLive ? (
-            <span className="self-start sm:self-auto flex items-center gap-1 bg-red-950/80 border border-red-800/40 text-red-500 px-2.5 py-0.5 rounded animate-pulse font-sans">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-              Ao Vivo • {STATUS_LABELS[jogo.status_detalhado || "1H"] || jogo.status_detalhado || "Em Andamento"} ({jogo.placar_casa ?? 0}x{jogo.placar_fora ?? 0})
+            <span className="self-start sm:self-auto flex items-center gap-1.5 bg-red-600 border border-red-500 text-white px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black tracking-wide shadow-md shadow-red-900/30 font-sans">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-100 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+              </span>
+              AO VIVO • {STATUS_LABELS[jogo.status_detalhado || "1H"] || jogo.status_detalhado || "EM ANDAMENTO"}
             </span>
           ) : isCanceled ? (
-            <span className="self-start sm:self-auto bg-red-950/40 border border-red-500/40 text-red-400 px-2.5 py-0.5 rounded font-sans">
+            <span className="self-start sm:self-auto bg-red-950/40 border border-red-550/40 text-red-400 px-2.5 py-1 rounded text-[10px] font-bold font-sans">
               Partida Cancelada
             </span>
           ) : isSuspended ? (
-            <span className="self-start sm:self-auto bg-yellow-950/40 border border-yellow-500/40 text-yellow-400 px-2.5 py-0.5 rounded font-sans">
+            <span className="self-start sm:self-auto bg-yellow-950/40 border border-yellow-500/40 text-yellow-400 px-2.5 py-1 rounded text-[10px] font-bold font-sans">
               Partida Suspensa
             </span>
           ) : isPostponed ? (
-            <span className="self-start sm:self-auto bg-slate-950 border border-slate-805 text-slate-400 px-2.5 py-0.5 rounded font-sans">
+            <span className="self-start sm:self-auto bg-slate-950 border border-slate-800 text-slate-400 px-2.5 py-1 rounded text-[10px] font-bold font-sans">
               Partida Adiada
             </span>
           ) : jogo.status === 'ENCERRADO' ? (
-            <span className="self-start sm:self-auto bg-slate-950 border border-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold font-sans">
-              {STATUS_LABELS[jogo.status_detalhado || "FT"] || jogo.status_detalhado || "Encerrado"} ({jogo.placar_casa}x{jogo.placar_fora})
+            <span className="self-start sm:self-auto bg-slate-800/80 border border-slate-700 text-slate-200 px-2.5 py-1 rounded text-[10px] font-black tracking-wide font-sans">
+              {STATUS_LABELS[jogo.status_detalhado || "FT"] || jogo.status_detalhado || "FINALIZADO"}
             </span>
           ) : isReadonly ? (
             <span className="self-start sm:self-auto text-yellow-500 bg-yellow-950/30 border border-yellow-950/60 px-2 py-0.5 rounded flex items-center gap-1 font-sans">
@@ -403,44 +406,61 @@ export default function MatchesSection({
             </span>
           </div>
 
-          {/* Guess Input grid */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            
-            <input
-              type="text"
-              maxLength={2}
-              disabled={!token || isReadonly || isBlocked || isCanceled}
-              placeholder="-"
-              value={inputVal.casa}
-              onChange={(e) => handleInputChange(jogo.id, 'casa', e.target.value)}
-              className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-center text-base sm:text-lg md:text-xl font-black font-mono rounded-xl border transition ${
-                !token 
-                  ? 'bg-slate-950 border-slate-800/60 text-slate-600 cursor-not-allowed'
-                  : (isReadonly || isBlocked || isCanceled)
-                    ? 'bg-slate-950 border-slate-900 text-slate-500 cursor-not-allowed'
-                    : 'bg-slate-950 border-brand-blue-light text-brand-blue-vibrant focus:border-brand-blue-accent focus:ring-1 focus:ring-brand-blue-accent'
-              }`}
-            />
+          {/* Real Scoreboard (for Live/Ended games) or Prediction Input fields */}
+          {(isGameLive || jogo.status === 'ENCERRADO') ? (
+            <div className="flex items-center gap-3 sm:gap-4 bg-slate-950/90 px-5 sm:px-6 py-2.5 rounded-2xl border border-slate-800/80 shadow-inner select-none">
+              <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono text-white tracking-tight leading-none min-w-[1.2ch] text-center drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]">
+                {jogo.placar_casa ?? 0}
+              </span>
+              <span className={`text-[10px] font-black font-sans uppercase px-2 py-0.5 rounded-md tracking-wider ${
+                isGameLive 
+                  ? 'bg-red-600 text-white animate-pulse border border-red-500' 
+                  : 'bg-slate-800 text-slate-300 border border-slate-700'
+              }`}>
+                {isGameLive ? 'AO VIVO' : 'FIM'}
+              </span>
+              <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono text-white tracking-tight leading-none min-w-[1.2ch] text-center drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]">
+                {jogo.placar_fora ?? 0}
+              </span>
+            </div>
+          ) : (
+            /* Guess Input grid */
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <input
+                type="text"
+                maxLength={2}
+                disabled={!token || isReadonly || isBlocked || isCanceled}
+                placeholder="-"
+                value={inputVal.casa}
+                onChange={(e) => handleInputChange(jogo.id, 'casa', e.target.value)}
+                className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-center text-base sm:text-lg md:text-xl font-black font-mono rounded-xl border transition ${
+                  !token 
+                    ? 'bg-slate-950 border-slate-800/60 text-slate-600 cursor-not-allowed'
+                    : (isReadonly || isBlocked || isCanceled)
+                      ? 'bg-slate-950 border-slate-900 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-950 border-brand-blue-light text-brand-blue-vibrant focus:border-brand-blue-accent focus:ring-1 focus:ring-brand-blue-accent'
+                }`}
+              />
 
-            <span className="text-slate-600 font-mono text-xs sm:text-sm">x</span>
+              <span className="text-slate-600 font-mono text-xs sm:text-sm">x</span>
 
-            <input
-              type="text"
-              maxLength={2}
-              disabled={!token || isReadonly || isBlocked || isCanceled}
-              placeholder="-"
-              value={inputVal.fora}
-              onChange={(e) => handleInputChange(jogo.id, 'fora', e.target.value)}
-              className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-center text-base sm:text-lg md:text-xl font-black font-mono rounded-xl border transition ${
-                !token 
-                  ? 'bg-slate-950 border-slate-800/60 text-slate-600 cursor-not-allowed'
-                  : (isReadonly || isBlocked || isCanceled)
-                    ? 'bg-slate-950 border-slate-900 text-slate-500 cursor-not-allowed'
-                    : 'bg-slate-950 border-brand-blue-light text-brand-blue-vibrant focus:border-brand-blue-accent focus:ring-1 focus:ring-brand-blue-accent'
-              }`}
-            />
-
-          </div>
+              <input
+                type="text"
+                maxLength={2}
+                disabled={!token || isReadonly || isBlocked || isCanceled}
+                placeholder="-"
+                value={inputVal.fora}
+                onChange={(e) => handleInputChange(jogo.id, 'fora', e.target.value)}
+                className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 text-center text-base sm:text-lg md:text-xl font-black font-mono rounded-xl border transition ${
+                  !token 
+                    ? 'bg-slate-950 border-slate-800/60 text-slate-600 cursor-not-allowed'
+                    : (isReadonly || isBlocked || isCanceled)
+                      ? 'bg-slate-950 border-slate-900 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-950 border-brand-blue-light text-brand-blue-vibrant focus:border-brand-blue-accent focus:ring-1 focus:ring-brand-blue-accent'
+                }`}
+              />
+            </div>
+          )}
 
           {/* Away Team */}
           <div className="flex flex-col items-center flex-1 space-y-2 text-center min-w-[70px]">

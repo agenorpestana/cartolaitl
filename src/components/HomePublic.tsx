@@ -391,9 +391,12 @@ export default function HomePublic({
                   onClick={onParticipateCta}
                 >
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                    <span className="text-red-500 flex items-center gap-1.5 font-sans animate-pulse">
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block" />
-                      Ao Vivo • {friendlyStatus}
+                    <span className="flex items-center gap-1.5 bg-red-600 border border-red-500 text-white px-2.5 py-0.5 rounded font-sans font-black tracking-wide shadow-sm shadow-red-950/20">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-100 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                      </span>
+                      AO VIVO • {friendlyStatus}
                     </span>
                     <span className="bg-red-950/60 text-red-400 px-2.5 py-0.5 rounded border border-red-900/40 font-mono">
                       Pontuação em Tempo Real
@@ -410,10 +413,10 @@ export default function HomePublic({
                     </div>
 
                     {/* Scores display */}
-                    <div className="flex items-center gap-3 px-2">
-                      <span className="text-3xl font-black font-mono text-slate-100">{jogo.placar_casa ?? 0}</span>
-                      <span className="text-slate-600 font-bold text-sm">:</span>
-                      <span className="text-3xl font-black font-mono text-slate-100">{jogo.placar_fora ?? 0}</span>
+                    <div className="flex items-center gap-3 bg-slate-950/90 px-4 sm:px-5 py-2 rounded-xl border border-slate-800/80 shadow-inner">
+                      <span className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight leading-none drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]">{jogo.placar_casa ?? 0}</span>
+                      <span className="text-red-500 font-bold text-xs sm:text-sm animate-pulse px-1">X</span>
+                      <span className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight leading-none drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]">{jogo.placar_fora ?? 0}</span>
                     </div>
 
                     {/* Away Team */}
