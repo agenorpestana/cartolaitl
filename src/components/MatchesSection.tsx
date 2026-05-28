@@ -238,6 +238,22 @@ export default function MatchesSection({
     return currentRoundIdx !== -1 && currentRoundIdx + 1 < rounds.length ? rounds[currentRoundIdx + 1] : null;
   }, [rounds, currentRoundIdx]);
 
+  // Auto-switch selected championship if the current one has no games (deactivated/hidden)
+  React.useEffect(() => {
+    if (jogos && jogos.length > 0) {
+      if (selectedCampeonato === 'COPA_MUNDO' && !hasCopaGames) {
+        if (hasLibertadoresGames) setSelectedCampeonato('LIBERTADORES');
+        else if (hasBrasileiraoGames) setSelectedCampeonato('BRASILEIRAO');
+      } else if (selectedCampeonato === 'LIBERTADORES' && !hasLibertadoresGames) {
+        if (hasCopaGames) setSelectedCampeonato('COPA_MUNDO');
+        else if (hasBrasileiraoGames) setSelectedCampeonato('BRASILEIRAO');
+      } else if (selectedCampeonato === 'BRASILEIRAO' && !hasBrasileiraoGames) {
+        if (hasCopaGames) setSelectedCampeonato('COPA_MUNDO');
+        else if (hasLibertadoresGames) setSelectedCampeonato('LIBERTADORES');
+      }
+    }
+  }, [jogos, hasCopaGames, hasLibertadoresGames, hasBrasileiraoGames, selectedCampeonato]);
+
   // Synchronize active rodada when championship or currentRound changes
   React.useEffect(() => {
     if (currentRound !== undefined && currentRound !== null) {
@@ -903,26 +919,30 @@ export default function MatchesSection({
 
       {/* Championship Selector Tabs */}
       <div className="flex bg-slate-900/40 p-1.5 rounded-xl border border-slate-900 w-full md:w-fit gap-1 font-sans">
-        <button
-          onClick={() => setSelectedCampeonato('COPA_MUNDO')}
-          className={`flex-1 md:flex-initial px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition duration-200 ${
-            selectedCampeonato === 'COPA_MUNDO'
-              ? 'bg-gradient-to-r from-brand-blue-accent to-brand-blue text-white font-black shadow-md shadow-brand-blue-accent/15'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
-          }`}
-        >
-          🏆 Copa do Mundo 2026
-        </button>
-        <button
-          onClick={() => setSelectedCampeonato('LIBERTADORES')}
-          className={`flex-1 md:flex-initial px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition duration-200 ${
-            selectedCampeonato === 'LIBERTADORES'
-              ? 'bg-gradient-to-r from-brand-blue-accent to-brand-blue text-white font-black shadow-md shadow-brand-blue-accent/15'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
-          }`}
-        >
-          🛰️ Copa Libertadores
-        </button>
+        {hasCopaGames && (
+          <button
+            onClick={() => setSelectedCampeonato('COPA_MUNDO')}
+            className={`flex-1 md:flex-initial px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition duration-200 ${
+              selectedCampeonato === 'COPA_MUNDO'
+                ? 'bg-gradient-to-r from-brand-blue-accent to-brand-blue text-white font-black shadow-md shadow-brand-blue-accent/15'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
+            }`}
+          >
+            🏆 Copa do Mundo 2026
+          </button>
+        )}
+        {hasLibertadoresGames && (
+          <button
+            onClick={() => setSelectedCampeonato('LIBERTADORES')}
+            className={`flex-1 md:flex-initial px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition duration-200 ${
+              selectedCampeonato === 'LIBERTADORES'
+                ? 'bg-gradient-to-r from-brand-blue-accent to-brand-blue text-white font-black shadow-md shadow-brand-blue-accent/15'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
+            }`}
+          >
+            🛰️ Copa Libertadores
+          </button>
+        )}
         {hasBrasileiraoGames && (
           <button
             onClick={() => setSelectedCampeonato('BRASILEIRAO')}
@@ -1148,7 +1168,7 @@ export default function MatchesSection({
                         {renderBandeira(row.bandeira, "w-4 h-4 rounded shadow-xs", "text-sm")}
                         <span className="truncate">{row.time}</span>
                       </td>
-                      <td className="py-3 px-1.5 text-center font-black text-brand-blue-vibrant font-mono">{row.pontos}</td>
+                      <td className="py-3 px-1.5 text-center font-black text-slate-100 font-mono">{row.pontos}</td>
                       <td className="py-3 px-1.5 text-center font-mono">{row.jogos}</td>
                       <td className="py-3 px-1.5 text-center font-mono">{row.vitorias}</td>
                       <td className="py-3 px-1.5 text-center font-mono">{row.empates}</td>
@@ -1198,7 +1218,7 @@ export default function MatchesSection({
                               <span className={`truncate ${rIdx < 2 ? 'text-slate-100 font-bold' : 'text-slate-400'}`}>{row.time}</span>
                             </div>
                             <div className="font-mono text-[9.5px] font-black flex items-center gap-2 shrink-0">
-                              <span className="text-brand-blue-light">{row.pontos}p</span>
+                              <span className="text-slate-100">{row.pontos}p</span>
                               <span className={`text-[9.5px] w-5 text-right ${row.saldo >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                 {row.saldo > 0 ? `+${row.saldo}` : row.saldo}
                               </span>
