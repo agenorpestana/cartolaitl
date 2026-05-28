@@ -147,13 +147,29 @@ function normalizeTeamName(name: string): string {
   return n;
 }
 
-function parseRoundNumber(roundStr: string): number {
+function parseRoundNumber(roundStr: string, isLibertadores = false): number {
   const norm = roundStr.toLowerCase();
+  
+  if (isLibertadores) {
+    if (norm.includes("group stage - 1") || norm.includes("rodada 1")) return 1;
+    if (norm.includes("group stage - 2") || norm.includes("rodada 2")) return 2;
+    if (norm.includes("group stage - 3") || norm.includes("rodada 3")) return 3;
+    if (norm.includes("group stage - 4") || norm.includes("rodada 4")) return 4;
+    if (norm.includes("group stage - 5") || norm.includes("rodada 5")) return 5;
+    if (norm.includes("group stage - 6") || norm.includes("rodada 6")) return 6;
+    
+    if (norm.includes("16") || norm.includes("eighth") || norm.includes("oitavas")) return 7;
+    if (norm.includes("quarter") || norm.includes("quartas")) return 8;
+    if (norm.includes("semi")) return 9;
+    if (norm.includes("final")) return 10;
+    return 1;
+  }
+
   if (norm.includes("group stage - 1") || norm.includes("rodada 1")) return 1;
   if (norm.includes("group stage - 2") || norm.includes("rodada 2")) return 2;
   if (norm.includes("group stage - 3") || norm.includes("rodada 3")) return 3;
   if (norm.includes("32")) return 4;
-  if (norm.includes("16") || norm.includes("eighth")) return 5;
+  if (norm.includes("16") || norm.includes("eighth") || norm.includes("oitavas")) return 5;
   if (norm.includes("quarter") || norm.includes("quartas")) return 6;
   if (norm.includes("semi")) return 7;
   if (norm.includes("final")) return 8;
@@ -238,101 +254,8 @@ const STANDARD_TEAMS = [
 ];
 
 function fillMissingBrasileiraoRounds(db: LocalDatabase) {
-  // Collect unique teams from existing Brasileirao games
-  const teamsMap: { [name: string]: string } = {};
-  db.jogos.forEach(g => {
-    if (g.api_id && g.api_id.startsWith("brasileirao_")) {
-      teamsMap[g.time_casa] = g.time_casa_bandeira || "🏳️";
-      teamsMap[g.time_fora] = g.time_fora_bandeira || "🏳️";
-    }
-  });
-
-  const teamsList = Object.keys(teamsMap).map(name => ({
-    name,
-    logo: teamsMap[name] || "🏳️"
-  }));
-
-  // If we have fewer than 20 teams, fill up with standard ones
-  const standardMissing = STANDARD_TEAMS.filter(st => !teamsMap[st.name]);
-  while (teamsList.length < 20 && standardMissing.length > 0) {
-    const nextItem = standardMissing.shift();
-    if (nextItem) {
-      teamsList.push(nextItem);
-    }
-  }
-
-  // Ensure even number
-  if (teamsList.length % 2 !== 0 && teamsList.length > 0) {
-    teamsList.pop();
-  }
-
-  if (teamsList.length < 2) return;
-
-  const existingRounds = new Set(
-    db.jogos
-      .filter(j => j.api_id && j.api_id.startsWith("brasileirao_"))
-      .map(j => j.rodada)
-  );
-
-  const missingRounds = [];
-  for (let r = 1; r <= 38; r++) {
-    if (!existingRounds.has(r)) {
-      missingRounds.push(r);
-    }
-  }
-
-  if (missingRounds.length === 0) return;
-
-  console.log(`[Brasileirao Seeder] Generating matches for ${missingRounds.length} missing rounds using ${teamsList.length} teams...`);
-
-  const n = teamsList.length;
-  for (const round of missingRounds) {
-    // Generate pairings for this round using standard round robin circle method (N is even)
-    const roundIndex = round - 1;
-    const roundPairings: { home: typeof teamsList[0], away: typeof teamsList[0] }[] = [];
-    
-    for (let i = 0; i < n / 2; i++) {
-      const homeIdx = (roundIndex + i) % (n - 1);
-      const awayIdx = i === 0 ? n - 1 : (roundIndex + n - 1 - i) % (n - 1);
-      
-      // alternate home and away
-      if (i % 2 === 0) {
-        roundPairings.push({ home: teamsList[homeIdx], away: teamsList[awayIdx] });
-      } else {
-        roundPairings.push({ home: teamsList[awayIdx], away: teamsList[homeIdx] });
-      }
-    }
-
-    const round20Time = new Date("2026-07-26T17:00:00Z").getTime();
-    // One round every 7 days back/forward
-    const gameTime = round20Time - (20 - round) * 7 * 24 * 60 * 60 * 1000;
-    const dataJogo = new Date(gameTime).toISOString();
-
-    for (const pair of roundPairings) {
-      const apiId = `brasileirao_soccer_gen_${round}_${pair.home.name.substring(0,3)}_${pair.away.name.substring(0,3)}`.toLowerCase().replace(/\s+/g, "");
-      
-      const status = "ENCERRADO";
-      const placarCasa = Math.floor(Math.random() * 3) + (Math.random() > 0.6 ? 1 : 0);
-      const placarFora = Math.floor(Math.random() * 2) + (Math.random() > 0.7 ? 1 : 0);
-
-      const newId = db.jogos.length > 0 ? Math.max(...db.jogos.map(j => j.id)) + 1 : 1;
-      
-      db.jogos.push({
-        id: newId,
-        api_id: apiId,
-        time_casa: pair.home.name,
-        time_fora: pair.away.name,
-        time_casa_bandeira: pair.home.logo,
-        time_fora_bandeira: pair.away.logo,
-        data_jogo: dataJogo,
-        placar_casa: placarCasa,
-        placar_fora: placarFora,
-        status: status as any,
-        rodada: round,
-        status_detalhado: "FT"
-      });
-    }
-  }
+  // Discarded to ensure only real, authentic fixtures synced from the Football API-Sports are shown.
+  return;
 }
 
 async function syncLeagueFromApi(db: LocalDatabase, leagueId: number): Promise<{ addedCount: number; updatedCount: number }> {
@@ -399,7 +322,7 @@ async function syncLeagueFromApi(db: LocalDatabase, leagueId: number): Promise<{
           placar_casa: placarCasa,
           placar_fora: placarFora,
           status: mappedStatus as any,
-          rodada: 1,
+          rodada: parseRoundNumber(item.league?.round || "Group Stage - 1", true),
           status_detalhado: shortStatus
         });
         addedCount++;
@@ -414,6 +337,7 @@ async function syncLeagueFromApi(db: LocalDatabase, leagueId: number): Promise<{
         existing.placar_fora = placarFora;
         existing.status = mappedStatus as any;
         existing.status_detalhado = shortStatus;
+        existing.rodada = parseRoundNumber(item.league?.round || "Group Stage - 1", true);
         updatedCount++;
       }
     }
@@ -753,6 +677,19 @@ function loadDatabase(): LocalDatabase {
       cachedDb.palpites = cachedDb.palpites.filter(p => !mockGameIdsToPurge.includes(p.jogo_id));
       saveDatabase(cachedDb);
     }
+  }
+
+  // Always clean up any generated fake Brasileirao games (api_id starts with "brasileirao_soccer_gen_" or includes "_gen_")
+  const originalGamesLength = cachedDb.jogos.length;
+  cachedDb.jogos = cachedDb.jogos.filter(j => {
+    if (j.api_id && (j.api_id.startsWith("brasileirao_soccer_gen_") || j.api_id.includes("_gen_"))) {
+      return false;
+    }
+    return true;
+  });
+  if (cachedDb.jogos.length !== originalGamesLength) {
+    console.log(`[Database Load] Dynamically purged ${originalGamesLength - cachedDb.jogos.length} fictional generated matches.`);
+    saveDatabase(cachedDb);
   }
 
   return cachedDb;
@@ -3230,7 +3167,7 @@ async function startServer() {
             placar_fora: placarFora,
             status: mappedStatus as any,
             status_detalhado: shortStatus,
-            rodada: parseRoundNumber(item.league?.round || "Group Stage - 1")
+            rodada: parseRoundNumber(item.league?.round || "Group Stage - 1", true)
           });
           addedCount++;
         } else {
@@ -3244,7 +3181,7 @@ async function startServer() {
           existing.placar_fora = placarFora;
           existing.status = mappedStatus as any;
           existing.status_detalhado = shortStatus;
-          existing.rodada = parseRoundNumber(item.league?.round || "Group Stage - 1");
+          existing.rodada = parseRoundNumber(item.league?.round || "Group Stage - 1", true);
           updatedCount++;
         }
       }

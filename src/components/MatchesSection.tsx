@@ -15,6 +15,21 @@ export function getFriendlyRoundName(rdNum: number | string, campeonato?: 'COPA_
   if (campeonato === 'BRASILEIRAO') {
     return `Rodada ${num}`;
   }
+  if (campeonato === 'LIBERTADORES') {
+    switch (num) {
+      case 1: return "Fase de Grupos - Rodada 1";
+      case 2: return "Fase de Grupos - Rodada 2";
+      case 3: return "Fase de Grupos - Rodada 3";
+      case 4: return "Fase de Grupos - Rodada 4";
+      case 5: return "Fase de Grupos - Rodada 5";
+      case 6: return "Fase de Grupos - Rodada 6";
+      case 7: return "Oitavas de Final";
+      case 8: return "Quartas de Final";
+      case 9: return "Semifinal";
+      case 10: return "Grande Final";
+      default: return `Rodada ${num}`;
+    }
+  }
   switch (num) {
     case 1: return "Fase de Grupos - Rodada 1";
     case 2: return "Fase de Grupos - Rodada 2";
@@ -774,13 +789,21 @@ export default function MatchesSection({
   }, [standings]);
 
   const playOffsByRound = React.useMemo(() => {
+    if (selectedCampeonato === 'LIBERTADORES') {
+      return {
+        7: currentChampionshipGames.filter(j => j.rodada === 7).sort((a,b) => a.id - b.id), // Oitavas (8 games)
+        8: currentChampionshipGames.filter(j => j.rodada === 8).sort((a,b) => a.id - b.id), // Quartas (4 games)
+        9: currentChampionshipGames.filter(j => j.rodada === 9).sort((a,b) => a.id - b.id), // Semifinais (2 games)
+        10: currentChampionshipGames.filter(j => j.rodada === 10).sort((a,b) => a.id - b.id), // Finals (1 game)
+      };
+    }
     return {
       5: currentChampionshipGames.filter(j => j.rodada === 5).sort((a,b) => a.id - b.id), // Oitavas (8 games)
       6: currentChampionshipGames.filter(j => j.rodada === 6).sort((a,b) => a.id - b.id), // Quartas (4 games)
       7: currentChampionshipGames.filter(j => j.rodada === 7).sort((a,b) => a.id - b.id), // Semifinais (2 games)
       8: currentChampionshipGames.filter(j => j.rodada === 8).sort((a,b) => a.id - b.id), // Finals (1 game)
     };
-  }, [currentChampionshipGames]);
+  }, [currentChampionshipGames, selectedCampeonato]);
 
   const renderBracketMatchBox = (jogo: Jogo | undefined, label: string) => {
     if (!jogo) {
@@ -1212,7 +1235,7 @@ export default function MatchesSection({
                       </div>
                       <div className="space-y-3">
                         {Array.from({ length: 8 }).map((_, idx) => {
-                          const game = playOffsByRound[5]?.[idx];
+                          const game = playOffsByRound[selectedCampeonato === 'LIBERTADORES' ? 7 : 5]?.[idx];
                           return (
                             <React.Fragment key={idx}>
                               {renderBracketMatchBox(game, `Confronto #${idx + 1}`)}
@@ -1231,7 +1254,7 @@ export default function MatchesSection({
                       </div>
                       <div className="space-y-16">
                         {Array.from({ length: 4 }).map((_, idx) => {
-                          const game = playOffsByRound[6]?.[idx];
+                          const game = playOffsByRound[selectedCampeonato === 'LIBERTADORES' ? 8 : 6]?.[idx];
                           return (
                             <React.Fragment key={idx}>
                               {renderBracketMatchBox(game, `Quartas #${idx + 1}`)}
@@ -1250,7 +1273,7 @@ export default function MatchesSection({
                       </div>
                       <div className="space-y-32">
                         {Array.from({ length: 2 }).map((_, idx) => {
-                          const game = playOffsByRound[7]?.[idx];
+                          const game = playOffsByRound[selectedCampeonato === 'LIBERTADORES' ? 9 : 7]?.[idx];
                           return (
                             <React.Fragment key={idx}>
                               {renderBracketMatchBox(game, `Semifinal #${idx + 1}`)}
@@ -1268,7 +1291,7 @@ export default function MatchesSection({
                         </div>
                       </div>
                       <div className="space-y-2">
-                        {renderBracketMatchBox(playOffsByRound[8]?.[0], "Grande Final")}
+                        {renderBracketMatchBox(playOffsByRound[selectedCampeonato === 'LIBERTADORES' ? 10 : 8]?.[0], "Grande Final")}
                       </div>
                     </div>
 
