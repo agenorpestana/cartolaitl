@@ -382,8 +382,7 @@ async function syncLeagueFromApi(db: LocalDatabase, leagueId: number): Promise<{
       let existing = db.jogos.find(j => j.api_id === apiId);
       if (!existing) {
         existing = db.jogos.find(j => 
-          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora)) ||
-          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeFora) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeCasa))
+          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora))
         );
       }
 
@@ -450,8 +449,7 @@ async function syncLeagueFromApi(db: LocalDatabase, leagueId: number): Promise<{
       let existing = db.jogos.find(j => j.api_id === apiId);
       if (!existing) {
         existing = db.jogos.find(j => 
-          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora)) ||
-          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeFora) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeCasa))
+          (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora))
         );
       }
 
@@ -667,8 +665,7 @@ async function syncFootballApiReal(db: LocalDatabase, req?: express.Request): Pr
     let existingJogo = db.jogos.find(j => j.api_id === apiId);
     if (!existingJogo) {
       existingJogo = db.jogos.find(j => 
-        (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora)) ||
-        (normalizeTeamName(j.time_casa) === normalizeTeamName(timeFora) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeCasa))
+        (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora))
       );
     }
 
@@ -3159,8 +3156,7 @@ async function startServer() {
         let existing = db.jogos.find(j => j.api_id === item.api_id);
         if (!existing) {
           existing = db.jogos.find(j => 
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_casa) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_fora)) ||
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_fora) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_casa))
+            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_casa) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_fora))
           );
         }
         if (!existing) {
@@ -3217,8 +3213,7 @@ async function startServer() {
         let existing = db.jogos.find(j => j.api_id === apiId);
           if (!existing) {
             existing = db.jogos.find(j => 
-              (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora)) ||
-              (normalizeTeamName(j.time_casa) === normalizeTeamName(timeFora) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeCasa))
+              (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora))
             );
           }
         if (!existing) {
@@ -3370,8 +3365,7 @@ async function startServer() {
         let existing = db.jogos.find(j => j.api_id === item.api_id);
         if (!existing) {
           existing = db.jogos.find(j => 
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_casa) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_fora)) ||
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_fora) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_casa))
+            (normalizeTeamName(j.time_casa) === normalizeTeamName(item.time_casa) && normalizeTeamName(j.time_fora) === normalizeTeamName(item.time_fora))
           );
         }
         if (!existing) {
@@ -3428,8 +3422,7 @@ async function startServer() {
         let existing = db.jogos.find(j => j.api_id === apiId);
         if (!existing) {
           existing = db.jogos.find(j => 
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora)) ||
-            (normalizeTeamName(j.time_casa) === normalizeTeamName(timeFora) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeCasa))
+            (normalizeTeamName(j.time_casa) === normalizeTeamName(timeCasa) && normalizeTeamName(j.time_fora) === normalizeTeamName(timeFora))
           );
         }
         if (!existing) {
